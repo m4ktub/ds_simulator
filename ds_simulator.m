@@ -165,6 +165,7 @@ for h = 1:loopcount
                     coinnet(i).conn(j).inv = ridsecond(coinnet(i).conn(j).inv);
                 end
             end
+            coinnet(i).inflight = []; % cleanout, decrease memory use
             
             
         end
