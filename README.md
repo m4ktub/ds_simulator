@@ -10,6 +10,17 @@ first-transmitted transaction is going to be mined next block versus the
 second-transmitted, under different network conditions and
 configurations.
 
+[p_firstmined,std_firstmined,firsttable] = ds_simulator(nodecount,minercount,loopcount,connections,interval,trickle,relay)
+
+0 < p_firstmined < 1 is the cumulative mean of the proportion of mining nodes 
+that will mine tx1 next block when all nodes have seen either tx1 or tx2.
+
+std_firstmined is the standard deviation of the proportion of mining nodes
+that will mine tx1 next block when all nodes have seen either tx1 or tx2.
+
+firsttable is a list of proportion of mining nodes that will mine tx1 for each
+loop.
+
 nodecount is the total number of nodes on the network. I assume all nodes
 follow the "default" configuration; variable configurations TODO
  
