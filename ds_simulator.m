@@ -63,7 +63,7 @@ std_firstmined = 0;
 firsttable = zeros(loopcount,1);
 
 for h = 1:loopcount
-    disp(['loop' num2str(h)])
+    disp(['perm loop' num2str(h)])
     coinnet = struct;
     
     % pick miners at random
@@ -89,7 +89,7 @@ for h = 1:loopcount
             coinnet(i).conn(j).id = outgoing(j);
             coinnet(i).conn(j).inv = randperm(1000,inventory);
             coinnet(i).conn(j).invsent = [];
-            coinnet(i).mempool = unique([coinnet(i).mempool coinnet(i).conn(j).inv],'stable');
+            coinnet(i).mempool = sunique([coinnet(i).mempool coinnet(i).conn(j).inv]);
         end
     end
     
@@ -105,7 +105,7 @@ for h = 1:loopcount
             coinnet(conntable(i,2)).conn(end).inv = randperm(1000,inventory);
             coinnet(conntable(i,2)).conn(end).invsent = [];
             coinnet(conntable(i,2)).mempool =...
-                unique([coinnet(conntable(i,2)).mempool coinnet(conntable(i,2)).conn(end).inv],'stable');
+                sunique([coinnet(conntable(i,2)).mempool coinnet(conntable(i,2)).conn(end).inv]);
             conntable = [conntable;[conntable(i,2) conntable(i,1)]];
         end
     end
@@ -121,7 +121,7 @@ for h = 1:loopcount
         if count == 1
             for j = 1:size(coinnet(1).conn,2)
                 coinnet(1).conn(j).inv = [coinnet(1).conn(j).inv,1001];
-                coinnet(1).mempool = [coinnet(1).mempool,1001];
+                coinnet(1).mempool = [coinnet(1).mempool, 1001];
             end
         end
         
@@ -154,14 +154,16 @@ for h = 1:loopcount
         end
         
         % add tx in flight from previous round to mempool and inv of its destination
-        for i = 1:nodecount
-            coinnet(i).mempool = unique([coinnet(i).mempool coinnet(i).inflight],'stable');
+        sendorder = randperm(nodecount,nodecount);
+        for ii = 1:nodecount
+            i = sendorder(ii);
+            coinnet(i).mempool = sunique([coinnet(i).mempool coinnet(i).inflight]);
             if ~relay % tx2 will never relay if tx1 is already seen and no ds relay
                 coinnet(i).mempool = ridsecond(coinnet(i).mempool);
             end
             for j = 1:size(coinnet(i).conn,2)
                 deducted = coinnet(i).inflight(~ismember(coinnet(i).inflight,coinnet(i).conn(j).invsent));
-                coinnet(i).conn(j).inv = unique([coinnet(i).conn(j).inv deducted],'stable');
+                coinnet(i).conn(j).inv = sunique([coinnet(i).conn(j).inv deducted]);
                 if ~relay
                     coinnet(i).conn(j).inv = ridsecond(coinnet(i).conn(j).inv);
                 end
@@ -173,16 +175,17 @@ for h = 1:loopcount
         
         
         % start relaying! put inv content into destination inflights
-        for i = 1:nodecount
+        for ii = 1:nodecount
+            i = sendorder(ii);
             for j = 1:size(coinnet(i).conn,2)
                 if ~trickle
                     % immediate relay
                     coinnet(coinnet(i).conn(j).id).inflight =...
-                        unique([coinnet(coinnet(i).conn(j).id).inflight,...
-                        coinnet(i).conn(j).inv],'stable');
+                        sunique([coinnet(coinnet(i).conn(j).id).inflight,...
+                        coinnet(i).conn(j).inv]);
                     coinnet(i).conn(j).invsent =...
-                        unique([coinnet(i).conn(j).invsent,...
-                        coinnet(i).conn(j).inv],'stable');
+                        sunique([coinnet(i).conn(j).invsent,...
+                        coinnet(i).conn(j).inv]);
                     coinnet(i).conn(j).inv = [];
                         
                 else
@@ -199,11 +202,11 @@ for h = 1:loopcount
                     invflight = coinnet(i).conn(j).inv(flag);
                     coinnet(i).conn(j).inv = coinnet(i).conn(j).inv(~flag);
                     coinnet(coinnet(i).conn(j).id).inflight =...
-                        unique([coinnet(coinnet(i).conn(j).id).inflight,...
-                        invflight],'stable');
+                        sunique([coinnet(coinnet(i).conn(j).id).inflight,...
+                        invflight]);
                     coinnet(i).conn(j).invsent =...
-                        unique([coinnet(i).conn(j).invsent,...
-                        invflight],'stable');
+                        sunique([coinnet(i).conn(j).invsent,...
+                        invflight]);
                     
                 end
                 
@@ -248,7 +251,6 @@ std_firstmined = std(firsttable);
 
 end
 
-
 % subfunction to eliminate the second-seen from tx1 and tx2 if relay ==
 % false
 function output = ridsecond(input)
@@ -269,9 +271,7 @@ function output = ridsecond(input)
     
 end
 
-
-
-
-    
-
-
+function output = sunique(input)
+  [~, i, ~] = unique(input, 'first');
+  output = input(sort(i));
+end
