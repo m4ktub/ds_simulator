@@ -121,6 +121,7 @@ for h = 1:loopcount
         if count == 1
             for j = 1:size(coinnet(1).conn,2)
                 coinnet(1).conn(j).inv = [coinnet(1).conn(j).inv,1001];
+                coinnet(1).mempool = [coinnet(1).mempool,1001];
             end
         end
         
